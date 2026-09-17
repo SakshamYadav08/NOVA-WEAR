@@ -1,0 +1,7 @@
+
+document.addEventListener("DOMContentLoaded",()=>{
+ const root=document.querySelector("#orders-root");if(!root)return;const orders=Store.orders();const success=new URLSearchParams(location.search).get("success");
+ if(success)document.querySelector("#success-banner").innerHTML=`<div class="newsletter" style="margin-bottom:25px"><div><div class="eyebrow">Order confirmed</div><h2 style="margin:8px 0">Thanks — ${success}</h2><p>Your demo order has been saved locally. No real payment was processed.</p></div><a class="btn btn-primary" href="shop.html">Keep shopping</a></div>`;
+ if(!orders.length){root.innerHTML=`<div class="empty"><i class="fa-solid fa-box-open"></i><h2>No orders yet</h2><p>Your completed demo checkouts will appear here.</p><a class="btn btn-primary" href="shop.html">Start shopping</a></div>`;return}
+ root.innerHTML=orders.map(o=>`<article class="order-item"><div class="order-head"><div><div class="order-id">${o.id}</div><div class="muted" style="font-size:10px;margin-top:4px">${new Date(o.date).toLocaleString("en-IN")}</div></div><div style="text-align:right"><span class="status">${o.status}</span><div style="font-weight:800;margin-top:8px">${money(o.total)}</div></div></div><div class="order-products">${o.items.map(i=>`<span class="order-product">${i.name} × ${i.qty} · ${i.size} · ${i.color}</span>`).join("")}</div><div class="muted" style="font-size:10px;margin-top:14px">Payment: ${o.payment} · Ship to: ${o.customer.city}, ${o.customer.state}</div></article>`).join("");
+});

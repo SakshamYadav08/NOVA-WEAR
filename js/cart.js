@@ -1,0 +1,17 @@
+
+document.addEventListener("DOMContentLoaded",()=>{
+ const root=document.querySelector("#cart-root");if(!root)return;
+ function render(){
+  const items=cartDetails();
+  if(!items.length){root.innerHTML=`<div class="empty"><i class="fa-solid fa-bag-shopping"></i><h2>Your bag is waiting</h2><p>Add a few pieces and they will stay here between visits.</p><a class="btn btn-primary" href="shop.html">Continue shopping</a></div>`;document.querySelector("#summary-box")?.remove();return}
+  root.innerHTML=items.map(i=>`<div class="cart-row"><div class="cart-img"><img src="${i.p.image}" alt="${i.p.name}"></div><div><div class="cart-title">${i.p.name}</div><div class="cart-variant">${i.size} · ${i.color}</div></div><div class="cart-price">${money(i.p.price)}</div><div class="qty"><button data-minus="${i.key}">−</button><input value="${i.qty}" data-qty="${i.key}" aria-label="Quantity"><button data-plus="${i.key}">+</button></div><div class="line-total">${money(i.p.price*i.qty)}</div><button class="remove-btn" data-remove="${i.key}" aria-label="Remove item"><i class="fa-solid fa-trash"></i></button></div>`).join("");
+  let summary=document.querySelector("#summary-box");if(!summary){summary=document.createElement("aside");summary.id="summary-box";summary.className="summary";document.querySelector(".cart-layout").appendChild(summary)}
+  const c=Store.coupon();summary.innerHTML=`<h2>Order summary</h2><div class="coupon"><input class="field" id="coupon-code" placeholder="Demo coupon"><button class="btn btn-primary" id="apply-coupon">Apply</button></div>${c?`<div class="muted" style="font-size:10px;margin-bottom:14px">Applied: <strong class="accent">${c.code}</strong> · <button id="remove-coupon" class="text-link" style="border:0;background:none;padding:0">Remove</button></div>`:""}<div class="summary-line"><span>Subtotal</span><span>${money(subtotal())}</span></div><div class="summary-line"><span>Discount</span><span class="accent">−${money(discountAmount())}</span></div><div class="summary-line"><span>Shipping</span><span>${shipping()===0?"FREE":money(shipping())}</span></div><div class="summary-line total"><span>Total</span><span>${money(grandTotal())}</span></div><a class="btn btn-primary" style="width:100%;margin-top:10px" href="checkout.html">Proceed to checkout <i class="fa-solid fa-arrow-right"></i></a><p class="form-note">Free shipping on eligible orders over ₹2,500. Coupons are demo-only.</p>`;
+  root.querySelectorAll("[data-minus]").forEach(b=>b.onclick=()=>change(b.dataset.minus,-1));root.querySelectorAll("[data-plus]").forEach(b=>b.onclick=()=>change(b.dataset.plus,1));root.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>remove(b.dataset.remove));root.querySelectorAll("[data-qty]").forEach(inp=>inp.onchange=()=>setQty(inp.dataset.qty,inp.value));
+  document.querySelector("#apply-coupon").onclick=()=>{if(setCoupon(document.querySelector("#coupon-code").value))render()};document.querySelector("#remove-coupon")?.addEventListener("click",()=>{Store.set("nova_coupon",null);toast("Coupon removed");render()});
+ }
+ function change(key,d){let c=Store.cart();const i=c.find(x=>x.key===key);if(!i)return;i.qty=Math.max(1,i.qty+d);Store.set("nova_cart",c);updateCounters();render()}
+ function setQty(key,v){let c=Store.cart();const i=c.find(x=>x.key===key);if(!i)return;i.qty=Math.max(1,Math.min(20,Number(v)||1));Store.set("nova_cart",c);updateCounters();render()}
+ function remove(key){Store.set("nova_cart",Store.cart().filter(x=>x.key!==key));updateCounters();toast("Product removed");render()}
+ render();
+});
